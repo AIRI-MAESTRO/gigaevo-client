@@ -1,0 +1,17 @@
+downloaded_chain.json
+uv.lock
+
+# Build / packaging
+dist/
+build/
+*.egg-info/
+
+# Caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Virtualenv
+.venv/

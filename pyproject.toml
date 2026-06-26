@@ -1,0 +1,65 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "gigaevo-client"
+version = "0.3.1"
+description = "Unified GigaEvo SDK — persistent memory for CARL artifacts + Platform API surface"
+readme = "README.md"
+license = "MIT"
+requires-python = ">= 3.12"
+authors = [{ name = "Glazkoff", email = "glazkov@airi.net" }]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: Pydantic :: 2",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "httpx >= 0.27",
+    "pydantic >= 2.0",
+    "httpx-sse >= 0.4",
+    "mmar-carl >= 0.1.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "respx",
+    "ruff",
+    "mypy",
+    "build",
+]
+# Tests still cover the legacy ``gigaevo_memory`` import path (renamed
+# in 0.3.0). The shim ships as a separate PyPI distribution but isn't
+# published at >= 0.3.1 yet, so a vendored copy under
+# ``tests/_legacy_shim/`` is added to pytest's pythonpath below.
+examples = ["fastapi", "uvicorn"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/src"]
+
+[tool.hatch.build.targets.wheel]
+# Ships only the canonical ``gigaevo_client`` package. The legacy
+# ``gigaevo_memory`` import-path shim lives in a separate distribution
+# (``gigaevo-memory`` on PyPI) so the two artefacts are independently
+# versionable.
+packages = ["src/gigaevo_client"]
+
+[tool.ruff]
+line-length = 120
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Vendored ``gigaevo_memory`` shim — see comment on the ``dev`` extra.
+pythonpath = ["tests/_legacy_shim"]
+filterwarnings = [
+    "ignore::DeprecationWarning:mmar_carl.*",
+    "ignore::DeprecationWarning:pydantic.*",
+    # Existing tests still import from ``gigaevo_memory``; the shim
+    # warning would spam pytest output. The dedicated rename tests
+    # turn warnings back on locally to assert the shim fires.
+    "ignore:The 'gigaevo_memory' package was renamed.*:DeprecationWarning",
+]
